@@ -4,12 +4,12 @@ import 'package:flutter_chat_app/components/my_textfield.dart';
 import 'package:flutter_chat_app/themes/light_mode.dart';
 
 class RegisterPage extends StatelessWidget {
-  RegisterPage({super.key});
+  RegisterPage({super.key, required this.onTap});
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
-
+  final void Function()? onTap;
   void register() {
     print("Register");
   }
@@ -71,11 +71,14 @@ class RegisterPage extends StatelessWidget {
                     style: TextStyle(color: lightTheme.colorScheme.primary),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
-                    "Login now",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: onTap,
+                    child: const Text(
+                      "Login now",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

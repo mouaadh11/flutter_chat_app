@@ -3,13 +3,15 @@ import 'package:flutter_chat_app/components/my_button.dart';
 import 'package:flutter_chat_app/components/my_textfield.dart';
 import 'package:flutter_chat_app/themes/light_mode.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class RegisterPage extends StatelessWidget {
+  RegisterPage({super.key});
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
-  void login() {
-    print("Login");
+  void register() {
+    print("Register");
   }
 
   @override
@@ -29,7 +31,7 @@ class LoginPage extends StatelessWidget {
               ),
               //welcome back, you've been missed!
               const Text(
-                "Welcome back, you've been missed!",
+                "Let's create an account for you!",
                 style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
 
@@ -48,10 +50,16 @@ class LoginPage extends StatelessWidget {
                 obscureText: true,
                 controller: passwordController,
               ),
+              MyTextfield(
+                hintText: "Confirm Password",
+                prefixIcon: Icons.lock,
+                obscureText: true,
+                controller: confirmPasswordController,
+              ),
               const SizedBox(height: 25),
 
               //login button
-              MyButton(text: "Login", onTap: login),
+              MyButton(text: "Register", onTap: register),
 
               //go to register page
               const SizedBox(height: 25),
@@ -59,12 +67,12 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Not a member?",
+                    "Already have an account?",
                     style: TextStyle(color: lightTheme.colorScheme.primary),
                   ),
                   const SizedBox(width: 4),
                   const Text(
-                    "Register now",
+                    "Login now",
                     style: TextStyle(
                       color: Colors.blue,
                       fontWeight: FontWeight.bold,

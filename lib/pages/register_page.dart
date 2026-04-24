@@ -11,17 +11,18 @@ class RegisterPage extends StatelessWidget {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   final void Function()? onTap;
-  void register(BuildContext context) {
+  void register(BuildContext context) async {
     //auth instance
     final _auth = AuthService();
     if (passwordController.text == confirmPasswordController.text) {
       try {
-        _auth.registerWithEmailAndPassword(
+        await _auth.registerWithEmailAndPassword(
           emailController.text,
           passwordController.text,
         );
       } catch (e) {
         print("Registration failed: $e");
+        if (!context.mounted) return;
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -50,9 +51,9 @@ class RegisterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: lightTheme.colorScheme.surface,
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Center(
+      body: Center(
+        child: SingleChildScrollView(
+          child: SafeArea(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

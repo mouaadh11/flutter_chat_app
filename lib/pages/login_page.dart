@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/auth/auth_service.dart';
 import 'package:flutter_chat_app/components/my_button.dart';
 import 'package:flutter_chat_app/components/my_textfield.dart';
 import 'package:flutter_chat_app/themes/light_mode.dart';
@@ -10,22 +11,21 @@ class LoginPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final Function()? onTap;
 
-  void login(BuildContext context) {
+  void login(BuildContext context) async {
     //auth instance
-    FirebaseAuth _auth = FirebaseAuth.instance;
-
-    //sign in with email and password
-    _auth.signInWithEmailAndPassword(
-      email: emailController.text,
-      password: passwordController.text,
-    ).then((value) {
-      print("Login successful");
-    }).catchError((error) {
-      print("Login failed: $error");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login failed: $error")),
+    final _auth = AuthService();
+    try {
+      await _auth.signInWithEmailAndPassword(
+        emailController.text,
+        passwordController.text,
       );
-    });
+    } catch (error) {
+      if (!context.mounted) return;
+      print("Login failed: $error");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login failed: $error")));
+    }
   }
 
   @override
@@ -34,65 +34,69 @@ class LoginPage extends StatelessWidget {
       backgroundColor: lightTheme.colorScheme.surface,
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              //logo
-              Icon(
-                Icons.chat_rounded,
-                size: 100,
-                color: lightTheme.colorScheme.primary,
-              ),
-              //welcome back, you've been missed!
-              const Text(
-                "Welcome back, you've been missed!",
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-
-              const SizedBox(height: 35),
-
-              //email and password text field
-              MyTextfield(
-                hintText: "Email",
-                prefixIcon: Icons.email,
-                controller: emailController,
-              ),
-
-              MyTextfield(
-                hintText: "Password",
-                prefixIcon: Icons.lock,
-                obscureText: true,
-                controller: passwordController,
-              ),
-              const SizedBox(height: 25),
-
-              //login button
-              MyButton(text: "Login", onTap: () => login(context)),
-
-              //go to register page
-              const SizedBox(height: 25),
-              Row(
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Not a member?",
-                    style: TextStyle(color: lightTheme.colorScheme.primary),
+                  //logo
+                  Icon(
+                    Icons.chat_rounded,
+                    size: 100,
+                    color: lightTheme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: onTap,
+                  //welcome back, you've been missed!
+                  const Text(
+                    "Welcome back, you've been missed!",
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
 
-                    child: const Text(
-                      "Register now",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                  const SizedBox(height: 35),
+
+                  //email and password text field
+                  MyTextfield(
+                    hintText: "Email",
+                    prefixIcon: Icons.email,
+                    controller: emailController,
+                  ),
+
+                  MyTextfield(
+                    hintText: "Password",
+                    prefixIcon: Icons.lock,
+                    obscureText: true,
+                    controller: passwordController,
+                  ),
+                  const SizedBox(height: 25),
+
+                  //login button
+                  MyButton(text: "Login", onTap: () => login(context)),
+
+                  //go to register page
+                  const SizedBox(height: 25),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Not a member?",
+                        style: TextStyle(color: lightTheme.colorScheme.primary),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: onTap,
+
+                        child: const Text(
+                          "Register now",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),

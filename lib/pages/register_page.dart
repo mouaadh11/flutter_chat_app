@@ -13,10 +13,10 @@ class RegisterPage extends StatelessWidget {
   final void Function()? onTap;
   void register(BuildContext context) async {
     //auth instance
-    final _auth = AuthService();
+    final auth = AuthService();
     if (passwordController.text == confirmPasswordController.text) {
       try {
-        await _auth.registerWithEmailAndPassword(
+        await auth.registerWithEmailAndPassword(
           emailController.text,
           passwordController.text,
         );
@@ -81,13 +81,13 @@ class RegisterPage extends StatelessWidget {
                 MyTextfield(
                   hintText: "Password",
                   prefixIcon: Icons.lock,
-                  obscureText: true,
+                  isPassword: true,
                   controller: passwordController,
                 ),
                 MyTextfield(
                   hintText: "Confirm Password",
                   prefixIcon: Icons.lock,
-                  obscureText: true,
+                  isPassword: true,
                   controller: confirmPasswordController,
                 ),
                 const SizedBox(height: 25),

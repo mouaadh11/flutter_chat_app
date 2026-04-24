@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/auth/auth_service.dart';
 import 'package:flutter_chat_app/components/my_button.dart';
@@ -13,9 +12,9 @@ class LoginPage extends StatelessWidget {
 
   void login(BuildContext context) async {
     //auth instance
-    final _auth = AuthService();
+    final auth = AuthService();
     try {
-      await _auth.signInWithEmailAndPassword(
+      await auth.signInWithEmailAndPassword(
         emailController.text,
         passwordController.text,
       );
@@ -63,7 +62,7 @@ class LoginPage extends StatelessWidget {
                   MyTextfield(
                     hintText: "Password",
                     prefixIcon: Icons.lock,
-                    obscureText: true,
+                    isPassword: true,
                     controller: passwordController,
                   ),
                   const SizedBox(height: 25),

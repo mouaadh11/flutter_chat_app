@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/components/my_drawer.dart';
 import 'package:flutter_chat_app/themes/light_mode.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +14,9 @@ class HomePage extends StatelessWidget {
           fontSize: 20,
         ),
         backgroundColor: lightTheme.colorScheme.primary,
-        title: Text("Home Page"),
+        title: const Text("Settings"),
       ),
-      drawer: MyDrawer(),
-      body: SafeArea(child: Center(child: Text("Welcome to the Home Page!"))),
+      body: const Center(child: Text("Settings Page")),
     );
   }
 }

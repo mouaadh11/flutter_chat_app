@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/components/my_button.dart';
 import 'package:flutter_chat_app/components/my_textfield.dart';
@@ -9,8 +10,22 @@ class LoginPage extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final Function()? onTap;
 
-  void login() {
-    print("Login");
+  void login(BuildContext context) {
+    //auth instance
+    FirebaseAuth _auth = FirebaseAuth.instance;
+
+    //sign in with email and password
+    _auth.signInWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    ).then((value) {
+      print("Login successful");
+    }).catchError((error) {
+      print("Login failed: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Login failed: $error")),
+      );
+    });
   }
 
   @override
@@ -52,7 +67,7 @@ class LoginPage extends StatelessWidget {
               const SizedBox(height: 25),
 
               //login button
-              MyButton(text: "Login", onTap: login),
+              MyButton(text: "Login", onTap: () => login(context)),
 
               //go to register page
               const SizedBox(height: 25),

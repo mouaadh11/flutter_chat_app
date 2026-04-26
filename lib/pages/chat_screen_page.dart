@@ -1,25 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
   final String userEmail;
   final String userId;
 
-  ChatScreen({super.key, required this.userEmail, required this.userId});
+  const ChatScreen({super.key, required this.userEmail, required this.userId});
 
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
   final chatServices = ChatServices();
+
   final auth = AuthService();
 
   final TextEditingController _messageController = TextEditingController();
+  
+
+  final ScrollController _scrollController = ScrollController();
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+
+    _scrollController.animateTo(
+      _scrollController.position.minScrollExtent,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   void _sendMessage() {
     final message = _messageController.text.trim();
     if (message.isNotEmpty) {
-      // Implement your send message logic here
-      print("Sending message: $message");
-      chatServices.sendMessage(message, userId);
+      chatServices.sendMessage(message, widget.userId);
       _messageController.clear();
     }
   }
@@ -30,7 +52,7 @@ class ChatScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: Text(
-          userEmail,
+          widget.userEmail,
           style: TextStyle(
             color: Theme.of(context).colorScheme.tertiary,
             fontWeight: FontWeight.bold,
@@ -38,51 +60,53 @@ class ChatScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(child: _buildChatMessagesList()),
+        child: Column(
+          children: [
+            Expanded(child: _buildChatMessagesList()),
 
-              Text(
-                "Chat with $userEmail",
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+            Text(
+              "Chat with ${widget.userEmail}",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        decoration: InputDecoration(
-                          hintText: "Type your message",
-                          border: OutlineInputBorder(),
-                        ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      onTap: () {
+                        Future.delayed(Duration(milliseconds: 300), () {
+                          _scrollToBottom();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Type your message",
+                        border: OutlineInputBorder(),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _sendMessage,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(16),
-                      ),
-                      child: Icon(
-                        Icons.send,
-                        color: Theme.of(context).colorScheme.tertiary,
-                        size: 20,
-                      ),
+                  ),
+                  SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _sendMessage,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      shape: CircleBorder(),
+                      padding: EdgeInsets.all(16),
                     ),
-                  ],
-                ),
+                    child: Icon(
+                      Icons.send,
+                      color: Theme.of(context).colorScheme.tertiary,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -90,7 +114,7 @@ class ChatScreen extends StatelessWidget {
 
   Widget _buildChatMessagesList() {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: chatServices.getMessagesStream(userId),
+      stream: chatServices.getMessagesStream(widget.userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -100,7 +124,12 @@ class ChatScreen extends StatelessWidget {
           return Center(child: Text("No messages yet"));
         } else {
           final messages = snapshot.data!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToBottom();
+          });
           return ListView.builder(
+            reverse: true,
+            controller: _scrollController,
             itemCount: messages.length,
             itemBuilder: (context, index) {
               final message = messages[index];

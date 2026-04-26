@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/auth/auth_service.dart';
+import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/components/my_button.dart';
 import 'package:flutter_chat_app/components/my_textfield.dart';
-import 'package:flutter_chat_app/themes/light_mode.dart';
 
 class RegisterPage extends StatelessWidget {
   RegisterPage({super.key, required this.onTap});
@@ -50,7 +49,7 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightTheme.colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: SingleChildScrollView(
           child: SafeArea(
@@ -61,7 +60,7 @@ class RegisterPage extends StatelessWidget {
                 Icon(
                   Icons.chat_rounded,
                   size: 100,
-                  color: lightTheme.colorScheme.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 //welcome back, you've been missed!
                 const Text(
@@ -102,7 +101,7 @@ class RegisterPage extends StatelessWidget {
                   children: [
                     Text(
                       "Already have an account?",
-                      style: TextStyle(color: lightTheme.colorScheme.primary),
+                      style: TextStyle(color: Theme.of(context).colorScheme.primary),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(

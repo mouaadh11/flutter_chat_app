@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/auth/auth_service.dart';
+import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/components/my_button.dart';
 import 'package:flutter_chat_app/components/my_textfield.dart';
-import 'package:flutter_chat_app/themes/light_mode.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({super.key, required this.onTap});
@@ -30,7 +29,7 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightTheme.colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: SafeArea(
@@ -42,7 +41,7 @@ class LoginPage extends StatelessWidget {
                   Icon(
                     Icons.chat_rounded,
                     size: 100,
-                    color: lightTheme.colorScheme.primary,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   //welcome back, you've been missed!
                   const Text(
@@ -77,7 +76,7 @@ class LoginPage extends StatelessWidget {
                     children: [
                       Text(
                         "Not a member?",
-                        style: TextStyle(color: lightTheme.colorScheme.primary),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary),
                       ),
                       const SizedBox(width: 4),
                       GestureDetector(

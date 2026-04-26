@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/pages/settings_page.dart';
-import 'package:flutter_chat_app/themes/light_mode.dart';
+import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
 class MyDrawer extends StatelessWidget {
   void signUserOut() {
@@ -9,7 +9,8 @@ class MyDrawer extends StatelessWidget {
     auth.signOut();
   }
 
-  const MyDrawer({super.key});
+  MyDrawer({super.key});
+  final chatServices = ChatServices();
 
   @override
   Widget build(BuildContext context) {
@@ -21,22 +22,18 @@ class MyDrawer extends StatelessWidget {
             children: [
               DrawerHeader(
                 decoration: BoxDecoration(
-                  color: lightTheme.colorScheme.primary,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                   
                   children: [
                     Text(
-                      'Menu',
+                      '👋 ${chatServices.getCurrentUser()?.email}',
                       style: TextStyle(
-                        color: lightTheme.colorScheme.tertiary,
-                        fontSize: 24,
+                        color: Theme.of(context).colorScheme.tertiary,
+                        fontSize: 18,
+                        overflow: TextOverflow.fade
                       ),
-                    ),
-                    Icon(
-                      Icons.message_rounded,
-                      color: lightTheme.colorScheme.tertiary,
-                      size: 30,
                     ),
                   ],
                 ),

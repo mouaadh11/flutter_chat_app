@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/components/my_drawer.dart';
 import 'package:flutter_chat_app/components/user_tile.dart';
@@ -6,11 +5,24 @@ import 'package:flutter_chat_app/pages/chat_screen_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final chatServices = ChatServices();
   final auth = AuthService();
+  final TextEditingController searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,38 +37,111 @@ class HomePage extends StatelessWidget {
         title: Text("Home Page"),
       ),
       drawer: MyDrawer(),
-      body: _buildUserList(),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search by username...",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.secondary,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_searchQuery.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Text(
+                    "Recent Chats",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: _searchQuery.isEmpty
+                ? _buildRecentChatsList()
+                : _buildSearchResults(),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildUserList() {
+  Widget _buildRecentChatsList() {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: chatServices.getRecentChatsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No recent chats. Search for users to start a conversation!"));
+        } else {
+          final users = snapshot.data!;
+          return ListView.builder(
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return _buildUserListItem(user, context);
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildSearchResults() {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: chatServices.getUserStream(),
       builder: (context, snapshot) {
-        // Handle different states of the stream
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // While waiting for data, show a loading indicator
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          // If there's an error, display it
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // If there's no data, show a message
           return Center(child: Text("No users found"));
         } else {
           final users = snapshot.data!;
-          print("Users: $users");
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: ListView.builder(
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  final user = users[index];
-                  return _buildUserListItem(user, context);
-                },
-              ),
-            ),
+          final filteredUsers = users.where((user) {
+            final username = (user['username'] ?? '').toString().toLowerCase();
+            return username.contains(_searchQuery);
+          }).toList();
+          
+          if (filteredUsers.isEmpty) {
+            return Center(child: Text("No users found matching '$_searchQuery'"));
+          }
+          
+          return ListView.builder(
+            itemCount: filteredUsers.length,
+            itemBuilder: (context, index) {
+              final user = filteredUsers[index];
+              return _buildUserListItem(user, context);
+            },
           );
         }
       },
@@ -65,16 +150,22 @@ class HomePage extends StatelessWidget {
 
   Widget _buildUserListItem(Map<String, dynamic> user, BuildContext context) {
     if (user['uid'] == chatServices.getCurrentUser()?.uid) {
-      // Don't show the current user in the list
       return SizedBox.shrink();
     }
+    final username = user['username'] ?? 'Unknown';
+    final avatarUrl = user['avatarUrl'] ?? '';
+    
     return UserTile(
-      text: user['email'],
+      text: username,
+      avatarUrl: avatarUrl,
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatScreen(userEmail: user['email'], userId: user['uid']),
+            builder: (context) => ChatScreen(
+              userEmail: user['email'] ?? '',
+              userId: user['uid'],
+            ),
           ),
         );
       },

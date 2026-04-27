@@ -17,6 +17,41 @@ class ChatServices {
     });
   }
 
+  //get recent chats (users we've messaged with)
+  Stream<List<Map<String, dynamic>>> getRecentChatsStream() {
+    final currentUser = getCurrentUser();
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+    
+    return firebase.collection('chats').snapshots().map((snapshot) async {
+      final List<Map<String, dynamic>> recentUsers = [];
+      final currentUserId = currentUser.uid;
+      
+      for (final doc in snapshot.docs) {
+        final chatId = doc.id;
+        final parts = chatId.split('-');
+        if (parts.length == 2) {
+          String? otherUserId;
+          if (parts[0] == currentUserId) {
+            otherUserId = parts[1];
+          } else if (parts[1] == currentUserId) {
+            otherUserId = parts[0];
+          }
+          
+          if (otherUserId != null) {
+            // Get the other user's data
+            final userDoc = await firebase.collection('users').doc(otherUserId).get();
+            if (userDoc.exists) {
+              recentUsers.add(userDoc.data()!);
+            }
+          }
+        }
+      }
+      return recentUsers;
+    }).asyncMap((future) => future);
+  }
+
   //get current user stream
   User? getCurrentUser() {
     return FirebaseAuth.instance.currentUser;

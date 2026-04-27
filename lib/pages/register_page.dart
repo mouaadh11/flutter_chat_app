@@ -6,6 +6,7 @@ import 'package:flutter_chat_app/components/my_textfield.dart';
 class RegisterPage extends StatelessWidget {
   RegisterPage({super.key, required this.onTap});
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
@@ -18,6 +19,7 @@ class RegisterPage extends StatelessWidget {
         await auth.registerWithEmailAndPassword(
           emailController.text,
           passwordController.text,
+          usernameController.text,
         );
       } catch (e) {
         print("Registration failed: $e");
@@ -75,6 +77,12 @@ class RegisterPage extends StatelessWidget {
                   hintText: "Email",
                   prefixIcon: Icons.email,
                   controller: emailController,
+                ),
+
+                MyTextfield(
+                  hintText: "Username",
+                  prefixIcon: Icons.person,
+                  controller: usernameController,
                 ),
 
                 MyTextfield(

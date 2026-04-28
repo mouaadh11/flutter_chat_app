@@ -11,7 +11,6 @@ class ChatServices {
     return firebase.collection('users').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         final user = doc.data();
-
         return user;
       }).toList();
     });
@@ -24,32 +23,43 @@ class ChatServices {
       return Stream.value([]);
     }
     
-    return firebase.collection('chats').snapshots().map((snapshot) async {
+    final currentUserId = currentUser.uid;
+    
+    return firebase.collection('chats').snapshots().asyncMap((snapshot) async {
       final List<Map<String, dynamic>> recentUsers = [];
-      final currentUserId = currentUser.uid;
+      final Set<String> processedUserIds = {}; // Avoid duplicates
       
       for (final doc in snapshot.docs) {
         final chatId = doc.id;
+        String? otherUserId;
+        
+        // Try to find the other user ID in the chat ID
+        // Format 1 (new): userId1-userId2 (alphabetically sorted)
+        // Format 2 (legacy): hashCode1-hashCode2
         final parts = chatId.split('-');
+        
         if (parts.length == 2) {
-          String? otherUserId;
+          // Check if current user ID is in the chat ID (new format)
           if (parts[0] == currentUserId) {
             otherUserId = parts[1];
           } else if (parts[1] == currentUserId) {
             otherUserId = parts[0];
           }
-          
-          if (otherUserId != null) {
-            // Get the other user's data
-            final userDoc = await firebase.collection('users').doc(otherUserId).get();
-            if (userDoc.exists) {
-              recentUsers.add(userDoc.data()!);
-            }
+          // For legacy format, we can't easily determine the other user
+          // without knowing both user IDs - this is a known limitation
+        }
+        
+        if (otherUserId != null && !processedUserIds.contains(otherUserId)) {
+          processedUserIds.add(otherUserId);
+          // Get the other user's data
+          final userDoc = await firebase.collection('users').doc(otherUserId).get();
+          if (userDoc.exists) {
+            recentUsers.add(userDoc.data()!);
           }
         }
       }
       return recentUsers;
-    }).asyncMap((future) => future);
+    });
   }
 
   //get current user stream
@@ -74,8 +84,8 @@ class ChatServices {
       sednerEmail: senderEmail!,
       receiverId: receiverId,
     );
-    //create a chat id by combining sender and receiver ids
-    String chatId = senderId.hashCode <= receiverId.hashCode
+    //create a chat id by combining sender and receiver ids (sorted alphabetically)
+    String chatId = senderId.compareTo(receiverId) < 0
         ? '$senderId-$receiverId'
         : '$receiverId-$senderId';
     //create a new document in the messages collection with the message data
@@ -93,7 +103,7 @@ class ChatServices {
       throw Exception("User not authenticated");
     }
     final senderId = currentUser.uid;
-    String chatId = senderId.hashCode <= receiverId.hashCode
+    String chatId = senderId.compareTo(receiverId) < 0
         ? '$senderId-$receiverId'
         : '$receiverId-$senderId';
         

@@ -95,12 +95,20 @@ class _HomePageState extends State<HomePage> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: chatServices.getRecentChatsStream(),
       builder: (context, snapshot) {
+        print("in the recent chat list logic");
         if (snapshot.connectionState == ConnectionState.waiting) {
+          print("loading .....");
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
+          print("there's an error");
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("No recent chats. Search for users to start a conversation!"));
+          print(snapshot.data);
+          return Center(
+            child: Text(
+              "No recent chats. Search for users to start a conversation!",
+            ),
+          );
         } else {
           final users = snapshot.data!;
           return ListView.builder(
@@ -131,11 +139,13 @@ class _HomePageState extends State<HomePage> {
             final username = (user['username'] ?? '').toString().toLowerCase();
             return username.contains(_searchQuery);
           }).toList();
-          
+
           if (filteredUsers.isEmpty) {
-            return Center(child: Text("No users found matching '$_searchQuery'"));
+            return Center(
+              child: Text("No users found matching '$_searchQuery'"),
+            );
           }
-          
+
           return ListView.builder(
             itemCount: filteredUsers.length,
             itemBuilder: (context, index) {
@@ -154,7 +164,7 @@ class _HomePageState extends State<HomePage> {
     }
     final username = user['username'] ?? 'Unknown';
     final avatarUrl = user['avatarUrl'] ?? '';
-    
+
     return UserTile(
       text: username,
       avatarUrl: avatarUrl,
@@ -162,10 +172,8 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              userEmail: user['email'] ?? '',
-              userId: user['uid'],
-            ),
+            builder: (context) =>
+                ChatScreen(userEmail: user['email'] ?? '', userId: user['uid']),
           ),
         );
       },

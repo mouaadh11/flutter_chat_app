@@ -44,11 +44,7 @@ class ChatServices {
                 .get();
 
             if (userDoc.exists) {
-              recentUsers.add({
-                ...userDoc.data()!,
-                'lastMessage': doc['lastMessage'],
-                'lastMessageTime': doc['lastMessageTime'],
-              });
+              recentUsers.add(userDoc.data()!);
             }
           }
           return recentUsers;
@@ -105,29 +101,42 @@ class ChatServices {
 
   //send message
   Future<void> sendMessage(String message, String receiverId) async {
-  final currentUser = getCurrentUser()!;
-  final senderId = currentUser.uid;
+    final currentUser = getCurrentUser();
+    if (currentUser == null) {
+      throw Exception("User not authenticated");
+    }
+    final senderEmail = currentUser.email;
+    final senderId = currentUser.uid;
+    final timestamp = DateTime.now();
 
-  final chatId = senderId.compareTo(receiverId) < 0
-      ? '$senderId-$receiverId'
-      : '$receiverId-$senderId';
+    Message newMessage = Message(
+      text: message,
+      senderId: senderId,
+      timestamp: timestamp,
+      sednerEmail: senderEmail!,
+      receiverId: receiverId,
+    );
 
-  final chatRef = firebase.collection('chats').doc(chatId);
+    //create a chat id by combining sender and receiver ids (sorted alphabetically)
+    String chatId = senderId.hashCode <= receiverId.hashCode
+        ? '$senderId-$receiverId'
+        : '$receiverId-$senderId';
 
-  // ✅ Explicitly write the chat document so it shows up in collection queries
-  await chatRef.set({
-    'participants': [senderId, receiverId],
-    'lastMessage': message,
-    'lastMessageTime': Timestamp.now(),
-  }, SetOptions(merge: true)); // merge:true so you don't overwrite on each send
+    print(
+      "================ chatId (send): $chatId ==================================",
+    );
+    final chatRef = firebase.collection('chats').doc(chatId);
 
-  await chatRef.collection('messages').add({
-    'senderId': senderId,
-    'receiverId': receiverId,
-    'message': message,
-    'timestamp': Timestamp.now(),
-  });
-}
+    // ✅ Explicitly write the chat document so it shows up in collection queries
+    await chatRef.set(
+      {
+        'participants': [senderId, receiverId],
+      },
+      SetOptions(merge: true),
+    ); // merge:true so you don't overwrite on each send
+
+    await chatRef.collection('messages').add(newMessage.toMap());
+  }
 
   // Future<void> sendMessage(String message, String receiverId) async {
   //   final currentUser = getCurrentUser();
@@ -164,10 +173,10 @@ class ChatServices {
       throw Exception("User not authenticated");
     }
     final senderId = currentUser.uid;
-    String chatId = senderId.compareTo(receiverId) < 0
+    String chatId = senderId.hashCode <= receiverId.hashCode
         ? '$senderId-$receiverId'
         : '$receiverId-$senderId';
-
+    print("====================chatId (get): $chatId ========================");
     return firebase
         .collection('chats')
         .doc(chatId)

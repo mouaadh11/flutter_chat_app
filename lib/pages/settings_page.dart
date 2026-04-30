@@ -1,10 +1,11 @@
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/themes/mode_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -47,6 +48,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      print("image exist == $image != null");
       if (image != null && mounted) {
         // Upload to Firebase Storage
         final currentUser = auth.getCurrentUser();
@@ -84,9 +86,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _updateUsername() async {
     final newUsername = _usernameController.text.trim();
-    if (newUsername.isEmpty) {
+    if (newUsername == _username) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Username cannot be empty")),
+        const SnackBar(content: Text("Username haven't been changed")),
       );
       return;
     }
@@ -134,7 +136,7 @@ class _SettingsPageState extends State<SettingsPage> {
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Avatar section
                   Center(

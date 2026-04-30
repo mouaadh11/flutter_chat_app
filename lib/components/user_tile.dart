@@ -3,9 +3,15 @@ import 'package:flutter/material.dart';
 
 class UserTile extends StatelessWidget {
   final String text;
+  final String? avatarUrl;
   final void Function()? onTap;
 
-  const UserTile({super.key, required this.text, this.onTap });
+  const UserTile({
+    super.key,
+    required this.text,
+    this.avatarUrl,
+    this.onTap
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,18 +26,44 @@ class UserTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.person),
+            _buildAvatar(),
             SizedBox(width: 10),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildAvatar() {
+    if (avatarUrl != null && avatarUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundImage: NetworkImage(avatarUrl!),
+        backgroundColor: Colors.grey[300],
+      );
+    } else {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey[300],
+        child: Text(
+          text.isNotEmpty ? text[0].toUpperCase() : '?',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+      );
+    }
   }
 }

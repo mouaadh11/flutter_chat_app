@@ -4,6 +4,7 @@ import 'package:flutter_chat_app/components/user_tile.dart';
 import 'package:flutter_chat_app/pages/chat_screen_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
+import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,9 +15,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final chatServices = ChatServices();
+  final notificationService = ChatNotification();
   final auth = AuthService();
   final TextEditingController searchController = TextEditingController();
   String _searchQuery = '';
+  @override
+  void initState() {
+    super.initState();
+    notificationService.initNotifications();
+    chatServices.msgNotification(notificationService);
+  }
 
   @override
   void dispose() {
@@ -172,8 +180,10 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                ChatScreen(userEmail: user['email'] ?? '', userId: user['uid']),
+            builder: (context) => ChatScreen(
+              userEmail: user['username'] ?? '',
+              userId: user['uid'],
+            ),
           ),
         );
       },

@@ -8,7 +8,6 @@ import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 class ChatServices {
   //get firebase instance
   final FirebaseFirestore firebase = FirebaseFirestore.instance;
-  final ChatNotification chatNotificationService = ChatNotification();
   FirebaseFirestore get firebaseIns => firebase; // if it's currently private
 
   //get users stream
@@ -127,7 +126,7 @@ class ChatServices {
 
   final Map<String, StreamSubscription> _chatSubscriptions = {};
 
-  void msgNotification() {
+  void msgNotification(ChatNotification chatNotificationService) {
     final currentUser = getCurrentUser();
     if (currentUser == null) return;
 

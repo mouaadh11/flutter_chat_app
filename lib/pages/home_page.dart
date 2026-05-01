@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/components/my_drawer.dart';
 import 'package:flutter_chat_app/components/user_tile.dart';
@@ -24,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     notificationService.initNotifications();
-    chatServices.msgNotification();
+    chatServices.msgNotification(notificationService);
   }
 
   @override

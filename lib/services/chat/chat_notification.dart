@@ -174,8 +174,8 @@ class ChatNotification {
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
     );
-
-    await notificationsPlugin.show(0, title, message, details);
+    final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await notificationsPlugin.show(id, title, message, details);
   }
 }
 

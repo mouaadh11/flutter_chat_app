@@ -1,12 +1,11 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/pages/settings_page.dart';
+import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
 class MyDrawer extends StatelessWidget {
-  void signUserOut() {
-    FirebaseAuth auth = FirebaseAuth.instance;
-    auth.signOut();
+  Future<void> signUserOut() {
+    return AuthService().signOut();
   }
 
   MyDrawer({super.key});
@@ -25,14 +24,13 @@ class MyDrawer extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 child: Column(
-                   
                   children: [
                     Text(
                       '👋 ${chatServices.getCurrentUser()?.email}',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.tertiary,
                         fontSize: 18,
-                        overflow: TextOverflow.fade
+                        overflow: TextOverflow.fade,
                       ),
                     ),
                   ],
@@ -67,10 +65,12 @@ class MyDrawer extends StatelessWidget {
             child: ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
-              onTap: () {
+              onTap: () async {
                 // Sign out the user
-                signUserOut();
-                Navigator.pop(context);
+                await signUserOut();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
               },
             ),
           ),

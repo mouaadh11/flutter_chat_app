@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/components/my_drawer.dart';
 import 'package:flutter_chat_app/components/user_tile.dart';
 import 'package:flutter_chat_app/pages/chat_screen_page.dart';
+import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
@@ -26,61 +27,60 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.tertiary),
-        titleTextStyle: TextStyle(
-          color: Theme.of(context).colorScheme.tertiary,
-          fontSize: 20,
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        title: Text("Home Page"),
-      ),
+      appBar: AppBar(title: const Text("Chats")),
       drawer: MyDrawer(),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: "Search people",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchQuery.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: "Clear search",
+                        onPressed: () {
+                          searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                        icon: const Icon(Icons.close),
+                      ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 10),
             child: Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: "Search by username...",
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.secondary,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value.toLowerCase();
-                      });
-                    },
+                Text(
+                  _searchQuery.isEmpty ? "Recent" : "People",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.inversePrimary,
                   ),
+                ),
+                const Spacer(),
+                Text(
+                  _searchQuery.isEmpty
+                      ? "Start or continue a chat"
+                      : "Tap avatar to view",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ],
             ),
           ),
-          if (_searchQuery.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Text(
-                    "Recent Chats",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           Expanded(
             child: _searchQuery.isEmpty
                 ? _buildRecentChatsList()
@@ -95,23 +95,20 @@ class _HomePageState extends State<HomePage> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: chatServices.getRecentChatsStream(),
       builder: (context, snapshot) {
-        print("in the recent chat list logic");
         if (snapshot.connectionState == ConnectionState.waiting) {
-          print("loading .....");
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          print("there's an error");
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          print(snapshot.data);
-          return Center(
-            child: Text(
-              "No recent chats. Search for users to start a conversation!",
-            ),
+          return _buildEmptyState(
+            icon: Icons.chat_bubble_outline,
+            title: "No chats yet",
+            subtitle: "Search for someone and start a conversation.",
           );
         } else {
           final users = snapshot.data!;
           return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 12),
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index];
@@ -128,11 +125,15 @@ class _HomePageState extends State<HomePage> {
       stream: chatServices.getUserStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text("Error: ${snapshot.error}"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("No users found"));
+          return _buildEmptyState(
+            icon: Icons.person_search,
+            title: "No people found",
+            subtitle: "Try a different username.",
+          );
         } else {
           final users = snapshot.data!;
           final filteredUsers = users.where((user) {
@@ -141,12 +142,15 @@ class _HomePageState extends State<HomePage> {
           }).toList();
 
           if (filteredUsers.isEmpty) {
-            return Center(
-              child: Text("No users found matching '$_searchQuery'"),
+            return _buildEmptyState(
+              icon: Icons.person_search,
+              title: "No match",
+              subtitle: "No users found matching '$_searchQuery'.",
             );
           }
 
           return ListView.builder(
+            padding: const EdgeInsets.only(bottom: 12),
             itemCount: filteredUsers.length,
             itemBuilder: (context, index) {
               final user = filteredUsers[index];
@@ -168,17 +172,68 @@ class _HomePageState extends State<HomePage> {
     return UserTile(
       text: username,
       avatarUrl: avatarUrl,
+      onAvatarTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage(userData: user)),
+        );
+      },
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => ChatScreen(
-              userEmail: user['username'] ?? '',
+              receiverName: username,
+              receiverAvatarUrl: avatarUrl,
               userId: user['uid'],
+              receiverData: user,
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: colorScheme.secondary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: colorScheme.primary, size: 30),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                color: colorScheme.inversePrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

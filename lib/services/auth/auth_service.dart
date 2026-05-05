@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 
 class AuthService {
   //auth & firestore instance
@@ -18,7 +19,10 @@ class AuthService {
       );
 
       // Check if user exists, if not create with default values
-      final doc = await _firestore.collection('users').doc(userCredential.user!.uid).get();
+      final doc = await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
       if (!doc.exists) {
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'email': email,
@@ -57,31 +61,35 @@ class AuthService {
 
   //sign out
   Future<void> signOut() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      await ChatNotification().removeCurrentTokenForUser(currentUser.uid);
+    }
     await _auth.signOut();
   }
 
   //update user profile
-  Future<void> updateUserProfile({
-    String? username,
-    String? avatarUrl,
-  }) async {
+  Future<void> updateUserProfile({String? username, String? avatarUrl}) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
       throw Exception("User not authenticated");
     }
-    
+
     Map<String, dynamic> updateData = {};
     if (username != null) updateData['username'] = username;
     if (avatarUrl != null) updateData['avatarUrl'] = avatarUrl;
-    
-    await _firestore.collection('users').doc(currentUser.uid).update(updateData);
+
+    await _firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .update(updateData);
   }
 
   //get current user data
   Future<Map<String, dynamic>?> getCurrentUserData() async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) return null;
-    
+
     final doc = await _firestore.collection('users').doc(currentUser.uid).get();
     return doc.data();
   }

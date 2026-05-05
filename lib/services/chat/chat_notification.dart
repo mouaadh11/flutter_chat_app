@@ -43,7 +43,7 @@ class ChatNotification {
       android: androidSettings,
     );
 
-    await notificationsPlugin.initialize(settings);
+    await notificationsPlugin.initialize(settings: settings);
 
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'messages',
@@ -175,7 +175,7 @@ class ChatNotification {
       android: androidDetails,
     );
     final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    await notificationsPlugin.show(id, title, message, details);
+    await notificationsPlugin.show(id: id, title : title, body :message, notificationDetails: details);
   }
 }
 

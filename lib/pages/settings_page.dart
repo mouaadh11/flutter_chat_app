@@ -49,7 +49,9 @@ class _SettingsPageState extends State<SettingsPage> {
       _phoneController.text = (userData?['phone'] ?? '').toString();
       _statusController.text = (userData?['status'] ?? 'Available').toString();
       _avatarUrl = (userData?['avatarUrl'] ?? '').toString();
-      _galleryUrls = List<String>.from(userData?['galleryUrls'] ?? []);
+      _galleryUrls = List<String>.from(
+        userData?['galleryUrls'] ?? [],
+      ).take(5).toList();
       _isLoading = false;
     });
   }
@@ -87,6 +89,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _pickGalleryImages() async {
     try {
+      final remainingSlots = 5 - _galleryUrls.length;
+      if (remainingSlots <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile photos are limited to 5")),
+        );
+        return;
+      }
+
       final images = await _picker.pickMultiImage();
       if (images.isEmpty) return;
 
@@ -96,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
       setState(() => _isUploadingGallery = true);
 
       final uploadedUrls = <String>[];
-      for (final image in images) {
+      for (final image in images.take(remainingSlots)) {
         final fileName = '${DateTime.now().microsecondsSinceEpoch}.jpg';
         final storageRef = FirebaseStorage.instance
             .ref()
@@ -108,7 +118,10 @@ class _SettingsPageState extends State<SettingsPage> {
         uploadedUrls.add(await storageRef.getDownloadURL());
       }
 
-      final updatedGallery = [..._galleryUrls, ...uploadedUrls];
+      final updatedGallery = [
+        ..._galleryUrls,
+        ...uploadedUrls,
+      ].take(5).toList();
       await auth.updateUserProfile(galleryUrls: updatedGallery);
 
       if (!mounted) return;
@@ -117,7 +130,13 @@ class _SettingsPageState extends State<SettingsPage> {
         _isUploadingGallery = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Photos added to your profile")),
+        SnackBar(
+          content: Text(
+            images.length > remainingSlots
+                ? "Added $remainingSlots photos. Profiles can show up to 5."
+                : "Photos added to your profile",
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -297,7 +316,7 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             Expanded(
               child: Text(
-                "Profile Photos",
+                "Profile Photos (${_galleryUrls.length}/5)",
                 style: TextStyle(
                   color: colorScheme.inversePrimary,
                   fontSize: 18,
@@ -307,7 +326,9 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             IconButton(
               tooltip: "Add photos",
-              onPressed: _isUploadingGallery ? null : _pickGalleryImages,
+              onPressed: _isUploadingGallery || _galleryUrls.length >= 5
+                  ? null
+                  : _pickGalleryImages,
               icon: _isUploadingGallery
                   ? const SizedBox(
                       width: 20,

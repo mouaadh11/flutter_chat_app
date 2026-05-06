@@ -104,7 +104,9 @@ class AuthService {
     if (website != null) updateData['website'] = website;
     if (phone != null) updateData['phone'] = phone;
     if (status != null) updateData['status'] = status;
-    if (galleryUrls != null) updateData['galleryUrls'] = galleryUrls;
+    if (galleryUrls != null) {
+      updateData['galleryUrls'] = galleryUrls.take(5).toList();
+    }
 
     await _firestore
         .collection('users')

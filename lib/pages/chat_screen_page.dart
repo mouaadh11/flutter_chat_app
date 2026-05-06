@@ -215,10 +215,10 @@ class _ChatScreenState extends State<ChatScreen> {
               : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (!isCurrentUser) ...[
-              _buildReceiverAvatar(radius: 16),
-              const SizedBox(width: 8),
-            ],
+            // if (!isCurrentUser) ...[
+            //   _buildReceiverAvatar(radius: 16),
+            //   const SizedBox(width: 8),
+            // ],
             Flexible(
               child: Container(
                 padding: const EdgeInsets.symmetric(

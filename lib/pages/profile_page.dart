@@ -82,7 +82,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final email = (_userData?['email'] ?? '').toString();
     final avatarUrl = (_userData?['avatarUrl'] ?? '').toString();
     final bio = (_userData?['bio'] ?? '').toString();
-    final galleryUrls = List<String>.from(_userData?['galleryUrls'] ?? []);
+    final galleryUrls = List<String>.from(
+      _userData?['galleryUrls'] ?? [],
+    ).take(5).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -214,20 +216,52 @@ class _ProfilePageState extends State<ProfilePage> {
                   mainAxisSpacing: 8,
                 ),
                 itemBuilder: (context, index) {
-                  return ClipRRect(
+                  final imageUrl = galleryUrls[index];
+                  return InkWell(
+                    onTap: () => _openImageViewer(galleryUrls, index),
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      galleryUrls[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: colorScheme.secondary,
-                        child: const Icon(Icons.broken_image),
+                    child: Hero(
+                      tag: 'profile-photo-$index-$imageUrl',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          gaplessPlayback: true,
+                          frameBuilder:
+                              (context, child, frame, wasSynchronouslyLoaded) {
+                                if (wasSynchronouslyLoaded || frame != null) {
+                                  return child;
+                                }
+                                return Container(
+                                  color: colorScheme.secondary,
+                                  child: const Icon(Icons.image_outlined),
+                                );
+                              },
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: colorScheme.secondary,
+                                child: const Icon(Icons.broken_image),
+                              ),
+                        ),
                       ),
                     ),
                   );
                 },
               ),
       ],
+    );
+  }
+
+  void _openImageViewer(List<String> imageUrls, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _ProfileImageViewer(
+          imageUrls: imageUrls,
+          initialIndex: initialIndex,
+        ),
+      ),
     );
   }
 
@@ -321,4 +355,105 @@ class _ProfileInfo {
   final dynamic value;
 
   const _ProfileInfo(this.icon, this.label, this.value);
+}
+
+class _ProfileImageViewer extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const _ProfileImageViewer({
+    required this.imageUrls,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_ProfileImageViewer> createState() => _ProfileImageViewerState();
+}
+
+class _ProfileImageViewerState extends State<_ProfileImageViewer> {
+  late final PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text("${_currentIndex + 1} / ${widget.imageUrls.length}"),
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.imageUrls.length,
+        onPageChanged: (index) => setState(() => _currentIndex = index),
+        itemBuilder: (context, index) {
+          final imageUrl = widget.imageUrls[index];
+          return Center(
+            child: Hero(
+              tag: 'profile-photo-$index-$imageUrl',
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  gaplessPlayback: true,
+                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                    if (wasSynchronouslyLoaded || frame != null) return child;
+                    return const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: CircularProgressIndicator(color: Colors.white),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => const Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 48,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: widget.imageUrls.length < 2
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(widget.imageUrls.length, (index) {
+                    final isSelected = index == _currentIndex;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      width: isSelected ? 18 : 7,
+                      height: 7,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.white : Colors.white38,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+        ),
+    );
+  }
 }

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_chat_app/models/message.dart';
-import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 
 class ChatServices {
   //get firebase instance
@@ -121,66 +120,6 @@ class ChatServices {
             final message = doc.data();
             return message;
           }).toList();
-        });
-  }
-
-  final Map<String, StreamSubscription> _chatSubscriptions = {};
-
-  void msgNotification(ChatNotification chatNotificationService) {
-    final currentUser = getCurrentUser();
-    if (currentUser == null) return;
-
-    firebase
-        .collection('chats')
-        .where('participants', arrayContains: currentUser.uid)
-        .snapshots()
-        .listen((chatSnapshot) {
-          for (final chatDoc in chatSnapshot.docs) {
-            final chatId = chatDoc.id;
-
-            // ✅ Avoid duplicate listeners
-            if (_chatSubscriptions.containsKey(chatId)) continue;
-
-            final sub = chatDoc.reference
-                .collection('messages')
-                .orderBy('timestamp', descending: true)
-                .limit(1)
-                .snapshots()
-                .listen((msgSnapshot) {
-                  if (msgSnapshot.docs.isEmpty) return;
-
-                  final msg = msgSnapshot.docs.first.data();
-
-                  final senderId = msg['senderId'];
-                  final text = msg['text'] ?? '';
-                  final timestamp = msg['timestamp'];
-                  print(
-                    "======================= senderID $senderId ==============================",
-                  );
-                  print(
-                    "======================= text $text ==============================",
-                  );
-                  print(
-                    "======================= timestamp $timestamp ==============================",
-                  );
-                  if (senderId == currentUser.uid) return;
-
-                  if (timestamp != null) {
-                    final messageTime = DateTime.parse(timestamp);
-
-                    final age = DateTime.now()
-                        .difference(messageTime)
-                        .inSeconds;
-                    if (age > 5) return;
-                  }
-                  chatNotificationService.showNotification(text);
-                });
-            print(
-              "======================= Age hadhak howa ==============================",
-            );
-
-            _chatSubscriptions[chatId] = sub;
-          }
         });
   }
 }

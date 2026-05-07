@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
+import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 import 'package:flutter_chat_app/services/chat/chat_services.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -28,6 +29,21 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
 
   final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    ChatNotification().setActiveChat(widget.userId);
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userId != widget.userId) {
+      ChatNotification().setActiveChat(widget.userId);
+    }
+  }
+
   void _scrollToBottom() {
     if (!_scrollController.hasClients) return;
 
@@ -40,6 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    ChatNotification().setActiveChat(null);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

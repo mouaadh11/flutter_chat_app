@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/pages/settings_page.dart';
+import 'package:flutter_chat_app/pages/edit_profile_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -60,7 +60,9 @@ class _ProfilePageState extends State<ProfilePage> {
               onPressed: () async {
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const EditProfilePage(),
+                  ),
                 );
                 _loadProfile();
               },

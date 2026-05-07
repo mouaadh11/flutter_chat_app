@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/pages/edit_profile_page.dart';
 import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/pages/settings_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
@@ -27,69 +28,88 @@ class MyDrawer extends StatelessWidget {
                     final userData = snapshot.data;
                     final username =
                         (userData?['username'] ??
-                                auth.getCurrentUser()?.email?.split('@').first ??
+                                auth
+                                    .getCurrentUser()
+                                    ?.email
+                                    ?.split('@')
+                                    .first ??
                                 'User')
                             .toString();
-                    final email = (auth.getCurrentUser()?.email ?? '').toString();
+                    final email = (auth.getCurrentUser()?.email ?? '')
+                        .toString();
                     final avatarUrl = (userData?['avatarUrl'] ?? '').toString();
-        
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.fromLTRB(14, 18, 14, 10),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: colorScheme.secondary,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 34,
-                            backgroundColor: colorScheme.tertiary,
-                            backgroundImage: avatarUrl.isNotEmpty
-                                ? NetworkImage(avatarUrl)
-                                : null,
-                            child: avatarUrl.isEmpty
-                                ? Text(
-                                    username.isNotEmpty
-                                        ? username[0].toUpperCase()
-                                        : '?',
-                                    style: TextStyle(
-                                      color: colorScheme.inversePrimary,
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  username,
-                                  style: TextStyle(
-                                    color: colorScheme.inversePrimary,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  email,
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 13,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
+
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ProfilePage(
+                              userData: userData,
+                              userId: userData?['uid'],
                             ),
                           ),
-                        ],
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.fromLTRB(14, 18, 14, 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 34,
+                              backgroundColor: colorScheme.tertiary,
+                              backgroundImage: avatarUrl.isNotEmpty
+                                  ? NetworkImage(avatarUrl)
+                                  : null,
+                              child: avatarUrl.isEmpty
+                                  ? Text(
+                                      username.isNotEmpty
+                                          ? username[0].toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        color: colorScheme.inversePrimary,
+                                        fontSize: 26,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    username,
+                                    style: TextStyle(
+                                      color: colorScheme.inversePrimary,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    email,
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -135,22 +155,21 @@ class MyDrawer extends StatelessWidget {
                 //     }
                 //   },
                 // ),
+                
                 ListTile(
-                  leading: const Icon(Icons.edit_outlined),
-                  title: const Text('Edit Profile'),
+                  leading: const Icon(Icons.settings_outlined),
+                  title: const Text('Settings'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsPage(),
-                      ),
+                      MaterialPageRoute(builder: (context) => SettingsPage()),
                     );
                   },
                 ),
               ],
             ),
-        
+
             Padding(
               padding: const EdgeInsets.only(bottom: 35),
               child: ListTile(

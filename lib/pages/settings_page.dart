@@ -1,11 +1,9 @@
-import 'dart:io';
-
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/pages/edit_profile_page.dart';
+import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
 import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 import 'package:flutter_chat_app/themes/mode_provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -161,119 +159,76 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildProfileFields(BuildContext context) {
-    return _buildPanel(
-      context,
-      children: [
-        _buildTextField(_usernameController, "Username", Icons.person),
-        const SizedBox(height: 12),
-        _buildTextField(_bioController, "Bio", Icons.notes, maxLines: 4),
-        const SizedBox(height: 12),
-        _buildTextField(_statusController, "Status", Icons.circle),
-        const SizedBox(height: 12),
-        _buildTextField(_locationController, "Location", Icons.place),
-        const SizedBox(height: 12),
-        _buildTextField(_websiteController, "Website", Icons.link),
-        const SizedBox(height: 12),
-        _buildTextField(_phoneController, "Phone", Icons.phone),
-      ],
-    );
-  }
-
-  Widget _buildGalleryEditor(BuildContext context) {
+  Widget _buildAccountPanel(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return _buildPanel(
-      context,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                "Profile Photos (${_galleryUrls.length}/5)",
-                style: TextStyle(
-                  color: colorScheme.inversePrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: auth.getCurrentUserData(),
+      builder: (context, snapshot) {
+        final userData = snapshot.data;
+        final username =
+            (userData?['username'] ??
+                    auth.getCurrentUser()?.email?.split('@').first ??
+                    'User')
+                .toString();
+        final email = (auth.getCurrentUser()?.email ?? '').toString();
+        final avatarUrl = (userData?['avatarUrl'] ?? '').toString();
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.tertiary,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: .7),
+            ),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: colorScheme.secondary,
+                backgroundImage: avatarUrl.isNotEmpty
+                    ? NetworkImage(avatarUrl)
+                    : null,
+                child: avatarUrl.isEmpty
+                    ? Text(
+                        username.isNotEmpty ? username[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          color: colorScheme.inversePrimary,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      username,
+                      style: TextStyle(
+                        color: colorScheme.inversePrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      email,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-            ),
-            IconButton(
-              tooltip: "Add photos",
-              onPressed: _isUploadingGallery || _galleryUrls.length >= 5
-                  ? null
-                  : _pickGalleryImages,
-              icon: _isUploadingGallery
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.add_photo_alternate),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _galleryUrls.isEmpty
-            ? Container(
-                height: 110,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.withValues(alpha: .35)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  "Add multiple photos for your profile",
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              )
-            : GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _galleryUrls.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemBuilder: (context, index) {
-                  final imageUrl = _galleryUrls[index];
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                color: colorScheme.secondary,
-                                child: const Icon(Icons.broken_image),
-                              ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: InkWell(
-                          onTap: () => _removeGalleryImage(imageUrl),
-                          child: const CircleAvatar(
-                            radius: 13,
-                            backgroundColor: Colors.black54,
-                            child: Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-      ],
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -328,7 +283,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
         color: colorScheme.tertiary,
         borderRadius: BorderRadius.circular(8),
@@ -339,29 +294,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildSectionTitle(BuildContext context, String title) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.inversePrimary,
-          fontSize: 14,
-          fontWeight: FontWeight.w800,
-        ),
+    return Text(
+      title,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.inversePrimary,
+        fontSize: 14,
+        fontWeight: FontWeight.w800,
       ),
-    );
-  }
-
-  Widget _buildTextField(
-    TextEditingController controller,
-    String label,
-    IconData icon, {
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
     );
   }
 }

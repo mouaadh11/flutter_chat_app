@@ -15,6 +15,9 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  static const double _profileImageMaxDimension = 1200;
+  static const int _profileImageQuality = 75;
+
   final auth = AuthService();
   final ImagePicker _picker = ImagePicker();
 
@@ -58,7 +61,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _pickAvatar() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: _profileImageMaxDimension,
+        maxHeight: _profileImageMaxDimension,
+        imageQuality: _profileImageQuality,
+      );
       if (image == null) return;
 
       final currentUser = auth.getCurrentUser();
@@ -97,7 +105,11 @@ class _SettingsPageState extends State<SettingsPage> {
         return;
       }
 
-      final images = await _picker.pickMultiImage();
+      final images = await _picker.pickMultiImage(
+        maxWidth: _profileImageMaxDimension,
+        maxHeight: _profileImageMaxDimension,
+        imageQuality: _profileImageQuality,
+      );
       if (images.isEmpty) return;
 
       final currentUser = auth.getCurrentUser();

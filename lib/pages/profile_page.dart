@@ -217,32 +217,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 itemBuilder: (context, index) {
                   final imageUrl = galleryUrls[index];
+                  final imageProvider = NetworkImage(imageUrl);
                   return InkWell(
                     onTap: () => _openImageViewer(galleryUrls, index),
                     borderRadius: BorderRadius.circular(8),
-                    child: Hero(
-                      tag: 'profile-photo-$index-$imageUrl',
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          gaplessPlayback: true,
-                          frameBuilder:
-                              (context, child, frame, wasSynchronouslyLoaded) {
-                                if (wasSynchronouslyLoaded || frame != null) {
-                                  return child;
-                                }
-                                return Container(
-                                  color: colorScheme.secondary,
-                                  child: const Icon(Icons.image_outlined),
-                                );
-                              },
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                        gaplessPlayback: true,
+                        frameBuilder:
+                            (context, child, frame, wasSynchronouslyLoaded) {
+                              if (wasSynchronouslyLoaded || frame != null) {
+                                return child;
+                              }
+                              return Container(
                                 color: colorScheme.secondary,
-                                child: const Icon(Icons.broken_image),
-                              ),
+                                child: const Icon(Icons.image_outlined),
+                              );
+                            },
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: colorScheme.secondary,
+                          child: const Icon(Icons.broken_image),
                         ),
                       ),
                     ),
@@ -254,6 +251,10 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _openImageViewer(List<String> imageUrls, int initialIndex) {
+    for (final imageUrl in imageUrls) {
+      precacheImage(NetworkImage(imageUrl), context);
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -382,6 +383,14 @@ class _ProfileImageViewerState extends State<_ProfileImageViewer> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final imageUrl in widget.imageUrls) {
+      precacheImage(NetworkImage(imageUrl), context);
+    }
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
@@ -402,35 +411,56 @@ class _ProfileImageViewerState extends State<_ProfileImageViewer> {
         onPageChanged: (index) => setState(() => _currentIndex = index),
         itemBuilder: (context, index) {
           final imageUrl = widget.imageUrls[index];
+          final imageProvider = NetworkImage(imageUrl);
           return Center(
-            child: Hero(
-              tag: 'profile-photo-$index-$imageUrl',
-              child: InteractiveViewer(
-                minScale: 1,
-                maxScale: 4,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  gaplessPlayback: true,
-                  frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                    if (wasSynchronouslyLoaded || frame != null) return child;
-                    return const SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.broken_image,
-                    color: Colors.white,
-                    size: 48,
-                  ),
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 4,
+              child: Image(
+                image: imageProvider,
+                fit: BoxFit.contain,
+                gaplessPlayback: true,
+                frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                  if (wasSynchronouslyLoaded || frame != null) return child;
+                  return const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.broken_image,
+                  color: Colors.white,
+                  size: 48,
                 ),
               ),
             ),
           );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: widget.imageUrls.length < 2
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 34),
+              child: Row(
+                children: [
+                  const SizedBox(width: 12),
+                  _buildImageNavButton(
+                    icon: Icons.chevron_left,
+                    isEnabled: _currentIndex > 0,
+                    onTap: () => _goToImage(_currentIndex - 1),
+                  ),
+                  const Spacer(),
+                  _buildImageNavButton(
+                    icon: Icons.chevron_right,
+                    isEnabled: _currentIndex < widget.imageUrls.length - 1,
+                    onTap: () => _goToImage(_currentIndex + 1),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+              ),
+            ),
       bottomNavigationBar: widget.imageUrls.length < 2
           ? null
           : SafeArea(
@@ -453,7 +483,39 @@ class _ProfileImageViewerState extends State<_ProfileImageViewer> {
                   }),
                 ),
               ),
+            ),
+    );
+  }
+
+  void _goToImage(int index) {
+    if (index < 0 || index >= widget.imageUrls.length) return;
+
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  Widget _buildImageNavButton({
+    required IconData icon,
+    required bool isEnabled,
+    required VoidCallback onTap,
+  }) {
+    return IgnorePointer(
+      ignoring: !isEnabled,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 160),
+        opacity: isEnabled ? 1 : .25,
+        child: FloatingActionButton.small(
+          heroTag: 'profile-image-nav-$icon',
+          backgroundColor: Colors.white.withValues(alpha: .18),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          onPressed: onTap,
+          child: Icon(icon),
         ),
+      ),
     );
   }
 }

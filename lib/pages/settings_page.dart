@@ -76,13 +76,21 @@ class SettingsPage extends StatelessWidget {
                 title: const Text("Edit Profile"),
                 subtitle: const Text("Update bio, avatar, and profile photos"),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  final wasUpdated = await Navigator.push<bool>(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const EditProfilePage(),
                     ),
                   );
+                  if (context.mounted && wasUpdated == true) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfilePage(),
+                      ),
+                    );
+                  }
                 },
               ),
               const Divider(height: 1),

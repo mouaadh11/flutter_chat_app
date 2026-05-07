@@ -23,8 +23,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _loadProfile();
   }
 
-  Future<void> _loadProfile() async {
-    if (widget.userData != null) {
+  Future<void> _loadProfile({bool forceRefresh = false}) async {
+    if (widget.userData != null && !forceRefresh) {
       setState(() {
         _userData = widget.userData;
         _isLoading = false;
@@ -32,9 +32,12 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    final userData = widget.userId == null
+    setState(() => _isLoading = true);
+
+    final uid = widget.userId ?? _userData?['uid'];
+    final userData = uid == null
         ? await auth.getCurrentUserData()
-        : await auth.getUserData(widget.userId!);
+        : await auth.getUserData(uid.toString());
     if (mounted) {
       setState(() {
         _userData = userData;
@@ -58,13 +61,15 @@ class _ProfilePageState extends State<ProfilePage> {
             IconButton(
               tooltip: "Edit profile",
               onPressed: () async {
-                await Navigator.push(
+                final wasUpdated = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const EditProfilePage(),
                   ),
                 );
-                _loadProfile();
+                if (wasUpdated == true) {
+                  _loadProfile(forceRefresh: true);
+                }
               },
               icon: const Icon(Icons.edit),
             ),

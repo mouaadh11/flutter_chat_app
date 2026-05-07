@@ -2,7 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/firebase_options.dart';
-import 'package:flutter_chat_app/services/auth/auth_gate.dart';
+import 'package:flutter_chat_app/services/onboarding/intro_gate.dart';
 import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 import 'package:flutter_chat_app/themes/mode_provider.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       navigatorKey: appNavigatorKey,
       theme: Provider.of<ModeProvider>(context).currentMode,
-      home: const AuthGate(),
+      home: const IntroGate(),
     );
   }
 }

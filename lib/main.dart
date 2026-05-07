@@ -1,17 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/services/auth/auth_gate.dart';
 import 'package:flutter_chat_app/firebase_options.dart';
+import 'package:flutter_chat_app/services/auth/auth_gate.dart';
 import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 import 'package:flutter_chat_app/themes/mode_provider.dart';
 import 'package:provider/provider.dart';
+
+final GlobalKey<NavigatorState> appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  await ChatNotification().initNotifications();
+  await ChatNotification().initNotifications(appNavigatorKey);
 
   runApp(
     ChangeNotifierProvider(create: (context) => ModeProvider(), child: MyApp()),
@@ -26,8 +28,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: appNavigatorKey,
       theme: Provider.of<ModeProvider>(context).currentMode,
-      home: AuthGate(),
+      home: const AuthGate(),
     );
   }
 }

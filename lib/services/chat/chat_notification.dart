@@ -3,13 +3,53 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_chat_app/firebase_options.dart';
+import 'package:flutter_chat_app/pages/chat_screen_page.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("==================== rani fi al func li manach 3arfin wash tdir");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
+
+class PendingChatTarget {
+  const PendingChatTarget({
+    required this.chatId,
+    required this.messageId,
+    required this.senderId,
+    required this.receiverId,
+  });
+
+  final String chatId;
+  final String messageId;
+  final String senderId;
+  final String receiverId;
+
+  String get key => '$chatId:$messageId';
+
+  static PendingChatTarget? fromMessageData(Map<String, dynamic> data) {
+    final chatId = data['chatId']?.toString();
+    final messageId = data['messageId']?.toString();
+    final senderId = data['senderId']?.toString();
+    final receiverId = data['receiverId']?.toString();
+
+    if ([
+      chatId,
+      messageId,
+      senderId,
+      receiverId,
+    ].any((value) => value == null || value.isEmpty)) {
+      return null;
+    }
+
+    return PendingChatTarget(
+      chatId: chatId!,
+      messageId: messageId!,
+      senderId: senderId!,
+      receiverId: receiverId!,
+    );
+  }
 }
 
 class ChatNotification {
@@ -26,11 +66,17 @@ class ChatNotification {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  GlobalKey<NavigatorState>? _navigatorKey;
   String? _lastUid;
   String? _lastToken;
+  String? _lastHandledTargetKey;
+  String? _activeChatUserId;
+  PendingChatTarget? _pendingChatTarget;
   bool _initialized = false;
 
-  Future<void> initNotifications() async {
+  Future<void> initNotifications(GlobalKey<NavigatorState> navigatorKey) async {
+    _navigatorKey = navigatorKey;
+
     if (_initialized) return;
     _initialized = true;
 
@@ -60,7 +106,12 @@ class ChatNotification {
     await _requestNotificationPermission();
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessage.listen(_showForegroundMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap(initialMessage);
+    }
 
     _auth.authStateChanges().listen((user) async {
       if (user == null) {
@@ -69,6 +120,7 @@ class ChatNotification {
       }
 
       await _saveCurrentToken(user.uid);
+      await tryOpenPendingChat();
     });
 
     _messaging.onTokenRefresh.listen((token) async {
@@ -149,33 +201,71 @@ class ChatNotification {
         .delete();
   }
 
-  Future<void> _showForegroundMessage(RemoteMessage message) async {
-    final notification = message.notification;
-    final title = notification?.title ?? 'New Message';
-    final body = notification?.body ?? message.data['body'] ?? '';
-
-    if (body.isEmpty) return;
-
-    await showNotification(body, title: title);
+  void setActiveChat(String? userId) {
+    _activeChatUserId = userId;
   }
 
-  Future<void> showNotification(
-    String message, {
-    String title = 'New Message',
-  }) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'messages', //kan 3andi channel_id
-          'Messages',
-          importance: Importance.max,
-          priority: Priority.high,
-        );
+  Future<void> _handleNotificationTap(RemoteMessage message) async {
+    final target = PendingChatTarget.fromMessageData(message.data);
+    if (target == null) return;
 
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
+    if (_lastHandledTargetKey == target.key ||
+        _pendingChatTarget?.key == target.key) {
+      return;
+    }
+
+    _pendingChatTarget = target;
+    await tryOpenPendingChat();
+  }
+
+  Future<void> tryOpenPendingChat() async {
+    final target = _pendingChatTarget;
+    final navigator = _navigatorKey?.currentState;
+    final currentUser = _auth.currentUser;
+
+    if (target == null || navigator == null || currentUser == null) {
+      return;
+    }
+
+    if (currentUser.uid != target.receiverId) {
+      _pendingChatTarget = null;
+      return;
+    }
+
+    if (_activeChatUserId == target.senderId) {
+      _lastHandledTargetKey = target.key;
+      _pendingChatTarget = null;
+      return;
+    }
+
+    final senderDoc = await _firestore
+        .collection('users')
+        .doc(target.senderId)
+        .get();
+    final senderData = senderDoc.data();
+    if (senderData == null) {
+      _pendingChatTarget = null;
+      return;
+    }
+
+    final receiverName =
+        (senderData['username'] ?? senderData['email'] ?? 'Unknown').toString();
+    final receiverAvatarUrl = (senderData['avatarUrl'] ?? '').toString();
+
+    navigator.popUntil((route) => route.isFirst);
+    await navigator.push(
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          receiverName: receiverName,
+          receiverAvatarUrl: receiverAvatarUrl,
+          userId: target.senderId,
+          receiverData: senderData,
+        ),
+      ),
     );
-    final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    await notificationsPlugin.show(id: id, title : title, body :message, notificationDetails: details);
+
+    _lastHandledTargetKey = target.key;
+    _pendingChatTarget = null;
   }
 }
 

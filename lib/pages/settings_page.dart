@@ -2,18 +2,74 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/pages/edit_profile_page.dart';
 import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';
+import 'package:flutter_chat_app/services/chat/chat_notification.dart';
 import 'package:flutter_chat_app/themes/mode_provider.dart';
 import 'package:provider/provider.dart';
 
-class SettingsPage extends StatelessWidget {
-  SettingsPage({super.key});
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
 
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
   final auth = AuthService();
+  final _chatNotification = ChatNotification();
+  bool _notificationsEnabled = true;
+  bool _isLoadingNotifications = true;
+  bool _isUpdatingNotifications = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSetting();
+  }
+
+  Future<void> _loadNotificationSetting() async {
+    final isEnabled = await _chatNotification.areNotificationsEnabled();
+
+    if (!mounted) return;
+
+    setState(() {
+      _notificationsEnabled = isEnabled;
+      _isLoadingNotifications = false;
+    });
+  }
 
   Future<void> _signOut(BuildContext context) async {
     await auth.signOut();
     if (context.mounted) {
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _toggleNotifications(bool enabled) async {
+    setState(() {
+      _notificationsEnabled = enabled;
+      _isUpdatingNotifications = true;
+    });
+
+    try {
+      await _chatNotification.setNotificationsEnabled(enabled);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = !enabled;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Couldn't update notification settings"),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingNotifications = false;
+        });
+      }
     }
   }
 
@@ -40,12 +96,7 @@ class SettingsPage extends StatelessWidget {
                 subtitle: "Up to 5 compressed photos on your profile",
               ),
               const Divider(height: 1),
-              _buildInfoTile(
-                context,
-                icon: Icons.notifications_outlined,
-                title: "Chat Notifications",
-                subtitle: "Enabled when device permissions allow alerts",
-              ),
+              _buildNotificationTile(context),
             ],
           ),
           const SizedBox(height: 16),
@@ -193,6 +244,23 @@ class SettingsPage extends StatelessWidget {
       onChanged: (_) {
         Provider.of<ModeProvider>(context, listen: false).toggleMode();
       },
+    );
+  }
+
+  Widget _buildNotificationTile(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      secondary: const Icon(Icons.notifications_outlined),
+      title: const Text("Chat Notifications"),
+      subtitle: Text(
+        _notificationsEnabled
+            ? "Alerts are active when device permissions allow"
+            : "Alerts are turned off for this account",
+      ),
+      value: _notificationsEnabled,
+      onChanged: _isLoadingNotifications || _isUpdatingNotifications
+          ? null
+          : _toggleNotifications,
     );
   }
 

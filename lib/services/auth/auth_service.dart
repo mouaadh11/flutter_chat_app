@@ -29,6 +29,12 @@ class AuthService {
           'uid': userCredential.user!.uid,
           'username': email.split('@').first,
           'avatarUrl': '',
+          'bio': '',
+          'location': '',
+          'website': '',
+          'phone': '',
+          'status': 'Available',
+          'galleryUrls': <String>[],
         });
       }
       return userCredential;
@@ -52,6 +58,12 @@ class AuthService {
         'uid': userCredential.user!.uid,
         'username': username,
         'avatarUrl': '',
+        'bio': '',
+        'location': '',
+        'website': '',
+        'phone': '',
+        'status': 'Available',
+        'galleryUrls': <String>[],
       });
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -69,7 +81,16 @@ class AuthService {
   }
 
   //update user profile
-  Future<void> updateUserProfile({String? username, String? avatarUrl}) async {
+  Future<void> updateUserProfile({
+    String? username,
+    String? avatarUrl,
+    String? bio,
+    String? location,
+    String? website,
+    String? phone,
+    String? status,
+    List<String>? galleryUrls,
+  }) async {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
       throw Exception("User not authenticated");
@@ -78,11 +99,19 @@ class AuthService {
     Map<String, dynamic> updateData = {};
     if (username != null) updateData['username'] = username;
     if (avatarUrl != null) updateData['avatarUrl'] = avatarUrl;
+    if (bio != null) updateData['bio'] = bio;
+    if (location != null) updateData['location'] = location;
+    if (website != null) updateData['website'] = website;
+    if (phone != null) updateData['phone'] = phone;
+    if (status != null) updateData['status'] = status;
+    if (galleryUrls != null) {
+      updateData['galleryUrls'] = galleryUrls.take(5).toList();
+    }
 
     await _firestore
         .collection('users')
         .doc(currentUser.uid)
-        .update(updateData);
+        .set(updateData, SetOptions(merge: true));
   }
 
   //get current user data
@@ -91,6 +120,12 @@ class AuthService {
     if (currentUser == null) return null;
 
     final doc = await _firestore.collection('users').doc(currentUser.uid).get();
+    return doc.data();
+  }
+
+  //get any user data
+  Future<Map<String, dynamic>?> getUserData(String uid) async {
+    final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data();
   }
 

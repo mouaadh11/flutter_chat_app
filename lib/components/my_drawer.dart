@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_app/pages/edit_profile_page.dart';
 import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:flutter_chat_app/pages/settings_page.dart';
 import 'package:flutter_chat_app/services/auth/auth_service.dart';

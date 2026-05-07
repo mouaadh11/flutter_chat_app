@@ -119,13 +119,16 @@ class ChatNotification {
         return;
       }
 
-      await _saveCurrentToken(user.uid);
+      if (await areNotificationsEnabled()) {
+        await _saveCurrentToken(user.uid);
+      }
       await tryOpenPendingChat();
     });
 
     _messaging.onTokenRefresh.listen((token) async {
       final user = _auth.currentUser;
       if (user == null) return;
+      if (!await areNotificationsEnabled()) return;
 
       await _saveToken(user.uid, token);
     });
@@ -189,6 +192,33 @@ class ChatNotification {
     if (_lastUid == uid && _lastToken == token) {
       _lastUid = null;
       _lastToken = null;
+    }
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final userDoc = await _firestore.collection('users').doc(user.uid).get();
+    final data = userDoc.data();
+
+    return data?['notificationsEnabled'] != false;
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    await _firestore.collection('users').doc(user.uid).set({
+      'notificationsEnabled': enabled,
+      'notificationsUpdatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    if (enabled) {
+      await _requestNotificationPermission();
+      await _saveCurrentToken(user.uid);
+    } else {
+      await removeCurrentTokenForUser(user.uid);
     }
   }
 

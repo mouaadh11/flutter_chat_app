@@ -101,19 +101,40 @@ class MyDrawer extends StatelessWidget {
                     Navigator.pop(context);
                   },
                 ),
-                ListTile(
-                  leading: const Icon(Icons.person_outline),
-                  title: const Text('Profile'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfilePage(),
-                      ),
-                    );
-                  },
-                ),
+                // ListTile(
+                //   leading: const Icon(Icons.person_outline),
+                //   title: const Text('Profile'),
+                //   onTap: () {
+                //     Navigator.pop(context);
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const ProfilePage(),
+                //       ),
+                //     );
+                //   },
+                // ),
+                // ListTile(
+                //   leading: const Icon(Icons.edit_outlined),
+                //   title: const Text('Edit Profile'),
+                //   onTap: () async {
+                //     Navigator.pop(context);
+                //     final wasUpdated = await Navigator.push<bool>(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const EditProfilePage(),
+                //       ),
+                //     );
+                //     if (context.mounted && wasUpdated == true) {
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (context) => const ProfilePage(),
+                //         ),
+                //       );
+                //     }
+                //   },
+                // ),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),
                   title: const Text('Edit Profile'),

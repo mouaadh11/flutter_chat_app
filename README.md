@@ -17,19 +17,19 @@ A modern, real-time chat application built with Flutter and Firebase, featuring 
 ## 📸 Screenshots
 
 ### Login Screen
-![Login Screen](screenshots/login_screen.jpg)
+<img src="screenshots/login_screen.jpg" alt="Login Screen" width="300">
 *Placeholder: Add a screenshot of the login page here*
 
 ### Chat Interface
-![Chat Interface](screenshots/chat_interface.jpg)
+<img src="screenshots/chat_interface.jpg" alt="Chat Interface" width="300">
 *Placeholder: Add a screenshot of the main chat screen here*
 
 ### Profile Page
-![Profile Page](screenshots/profile_page.jpg)
+<img src="screenshots/profile_page.jpg" alt="Profile Page" width="300">
 *Placeholder: Add a screenshot of the user profile page here*
 
 ### Settings
-![Settings](screenshots/settings_page.jpg)
+<img src="screenshots/settings_page.jpg" alt="Settings" width="300">
 *Placeholder: Add a screenshot of the settings page here*
 
 *Note: Place your screenshots in a `screenshots/` folder in the root directory of the project.*

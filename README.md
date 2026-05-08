@@ -1,21 +1,16 @@
 # Flutter Chat App
 
-A modern, real-time chat application built with Flutter and Firebase, featuring user authentication, messaging, image sharing, and push notifications.
+A real-time chat application built with Flutter and Firebase. The app supports email authentication, searchable users, one-to-one conversations, editable user profiles, profile photos, push notification preferences, onboarding, and light/dark themes.
 
-## 🚀 Features
+## Screenshots
 
-- **User Authentication**: Secure login and registration using Firebase Authentication
-- **Real-time Messaging**: Instant messaging with Cloud Firestore for real-time updates
-- **Image Sharing**: Send and receive images using Firebase Storage
-- **Push Notifications**: Receive notifications for new messages using Firebase Cloud Messaging
-- **Local Notifications**: In-app notifications for better user experience
-- **Profile Management**: Edit user profiles with avatars
-- **Dark/Light Mode**: Theme switching with Provider for state management
-- **Onboarding Experience**: Smooth introduction for new users
-- **Settings Page**: Customize app preferences
+| Login | Chat | Profile | Settings |
+| --- | --- | --- | --- |
+| <img src="screenshots/login_screen.jpg" alt="Login screen" width="220"> | <img src="screenshots/chat_interface.jpg" alt="Chat interface" width="220"> | <img src="screenshots/profile_page.jpg" alt="Profile page" width="220"> | <img src="screenshots/settings_page.jpg" alt="Settings page" width="220"> |
 
-## 📸 Screenshots
+## Features
 
+<<<<<<< Updated upstream
 ### Login Screen
 <img src="screenshots/login_screen.jpg" alt="Login Screen" width="300">
 
@@ -28,131 +23,187 @@ A modern, real-time chat application built with Flutter and Firebase, featuring 
 ### Settings
 <img src="screenshots/settings_page.jpg" alt="Settings" width="300">
 
+=======
+- Email and password registration/login with Firebase Authentication.
+- Automatic user profile creation in Cloud Firestore after sign up.
+- Real-time one-to-one chat using Firestore streams.
+- Recent chats list based on conversations the current user has joined.
+- User search by username to start new conversations.
+- Profile pages with username, email, bio, status, location, website, phone, avatar, and photo gallery.
+- Profile editing with image uploads through Firebase Storage.
+- Profile gallery limited to 5 compressed images.
+- Push notification setup using Firebase Cloud Messaging.
+- Local Android notification channel using `flutter_local_notifications`.
+- Notification settings toggle that saves or removes the device token.
+- Notification tap handling that can open the related chat.
+- First-launch onboarding saved with Shared Preferences.
+- Light and dark mode switching with Provider.
+- Reusable UI components for buttons, text fields, drawer navigation, and user tiles.
 
-## 🛠️ Technologies Used
+## Tech Stack
 
-- **Flutter**: Cross-platform mobile app development framework
-- **Dart**: Programming language for Flutter
-- **Firebase**:
-  - Firebase Core: Core Firebase functionality
-  - Firebase Auth: User authentication
-  - Cloud Firestore: NoSQL database for real-time data
-  - Firebase Storage: File storage for images
-  - Firebase Messaging: Push notifications
-- **Provider**: State management solution
-- **Image Picker**: For selecting images from gallery/camera
-- **Shared Preferences**: Local data storage
-- **HTTP**: For network requests
-- **Flutter Local Notifications**: In-app notifications
+- Flutter and Dart
+- Firebase Core
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
+- Firebase Cloud Messaging
+- Flutter Local Notifications
+- Provider
+- Image Picker
+- Shared Preferences
 
-## 📚 Concepts Learned
+## Concepts Learned
 
-Throughout the development of this Flutter chat app, we explored and implemented several key concepts:
+This project brings together several important Flutter and Firebase concepts:
+>>>>>>> Stashed changes
 
-### Flutter Fundamentals
-- **Widget Tree**: Understanding the declarative UI structure
-- **State Management**: Using Provider for app-wide state (theme, user data)
-- **Navigation**: Implementing routes and navigator keys
-- **Lifecycle Management**: Handling app initialization and background messages
+### Flutter App Structure
 
-### Firebase Integration
-- **Authentication Flow**: Implementing login, registration, and user sessions
-- **Real-time Database**: Using Firestore for live chat updates
-- **File Storage**: Uploading and downloading images with Firebase Storage
-- **Push Notifications**: Setting up FCM for cross-platform notifications
+- Building a Flutter app with `MaterialApp`, `Scaffold`, pages, components, services, models, and themes.
+- Splitting code into clear folders such as `pages`, `components`, `services`, `models`, and `themes`.
+- Creating reusable widgets for repeated UI patterns.
+- Passing data between screens through constructors.
+- Using `Navigator` and `MaterialPageRoute` for app navigation.
+- Using a global `NavigatorState` key for notification-driven navigation.
 
-### Advanced Flutter Features
-- **Asynchronous Programming**: Using async/await for Firebase operations
-- **Streams**: Listening to real-time data changes
-- **Platform Channels**: Integrating native features (notifications, image picker)
-- **Dependency Injection**: Managing services and providers
+### Authentication
 
-### UI/UX Design
-- **Material Design**: Following Google's design guidelines
-- **Responsive Layout**: Adapting to different screen sizes
-- **Theme Management**: Implementing dark/light mode switching
-- **User Onboarding**: Creating smooth first-time user experiences
+- Creating accounts with email and password.
+- Signing users in and out with Firebase Authentication.
+- Reading the current authenticated user.
+- Protecting app flow with an authentication gate.
+- Creating Firestore user documents after registration or first login.
 
-### Best Practices
-- **Code Organization**: Structuring code into models, services, pages, and components
-- **Error Handling**: Managing Firebase errors and network issues
-- **Security**: Implementing proper authentication and data validation
-- **Performance**: Optimizing for smooth real-time chat experience
+### Firestore Database
 
-## 🏃‍♂️ Getting Started
+- Storing user profiles in a `users` collection.
+- Creating direct chat documents in a `chats` collection.
+- Storing messages inside each chat's `messages` subcollection.
+- Using sorted participant IDs to create stable one-to-one chat IDs.
+- Querying recent chats with `arrayContains`.
+- Reading real-time updates with Firestore snapshots and Dart streams.
+- Ordering chat messages by timestamp.
+
+### State Management
+
+- Using Provider and `ChangeNotifier` for theme state.
+- Updating UI reactively with `setState`.
+- Managing loading, saving, uploading, and empty states.
+- Disposing controllers to avoid memory leaks.
+
+### UI and UX
+
+- Building login, register, home, chat, profile, edit profile, settings, and onboarding screens.
+- Creating empty states for no chats and no search results.
+- Adding search behavior for finding people.
+- Building chat bubbles that align differently for sent and received messages.
+- Supporting dark and light themes with custom color schemes.
+- Using profile avatars, gallery grids, and status labels.
+
+### Images and Storage
+
+- Picking images from the device gallery with `image_picker`.
+- Compressing selected profile images before upload.
+- Uploading avatar and gallery images to Firebase Storage.
+- Saving image download URLs in Firestore.
+- Displaying remote profile images with `NetworkImage`.
+
+### Notifications
+
+- Requesting notification permission.
+- Registering Firebase Messaging background handlers.
+- Saving FCM tokens under each user in Firestore.
+- Removing tokens when notifications are disabled or the user signs out.
+- Handling token refresh.
+- Opening the correct chat when a notification is tapped.
+
+### Local Persistence
+
+- Saving whether the onboarding screen has already been seen.
+- Loading that preference before deciding whether to show onboarding or the auth flow.
+
+### Testing and Quality
+
+- Writing widget tests for onboarding and intro gate behavior.
+- Using `flutter_lints` for consistent Dart/Flutter code quality.
+- Keeping app behavior separated into services so UI files stay easier to read.
+
+## Project Structure
+
+```text
+lib/
+  components/          Reusable UI widgets
+  models/              Data models
+  pages/               App screens
+  services/
+    auth/              Authentication and user profile logic
+    chat/              Chat and notification logic
+    onboarding/        First-launch onboarding gate
+  themes/              Light/dark theme provider and color schemes
+  firebase_options.dart
+  main.dart
+
+screenshots/           README screenshots
+functions/             Firebase Cloud Functions
+test/                  Flutter widget tests
+```
+
+## Getting Started
 
 ### Prerequisites
-- Flutter SDK (version 3.11.4 or higher)
-- Dart SDK (version 3.11.4 or higher)
-- Firebase project with enabled services (Auth, Firestore, Storage, Messaging)
-- Android Studio or VS Code for development
 
-### Installation
+- Flutter SDK with Dart `^3.11.4`
+- A Firebase project
+- Android Studio or VS Code
+- An Android emulator/device, or another Flutter-supported target
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/flutter_chat_app.git
-   cd flutter_chat_app
-   ```
+### Firebase Setup
 
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
+Enable these Firebase services:
 
-3. **Configure Firebase**
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication, Firestore, Storage, and Cloud Messaging
-   - Download `google-services.json` for Android and place it in `android/app/`
-   - For iOS, configure the Firebase project accordingly
-   - Update `lib/firebase_options.dart` with your Firebase configuration
+- Authentication with email/password provider
+- Cloud Firestore
+- Firebase Storage
+- Cloud Messaging
 
-4. **Run the app**
-   ```bash
-   flutter run
-   ```
+Then add your Firebase configuration files:
 
-### Building for Production
+- Android: `android/app/google-services.json`
+- Flutter options: `lib/firebase_options.dart`
+- iOS/macOS, if used: configure the matching Firebase app files for those platforms
 
-**Android:**
+### Run Locally
+
+```bash
+flutter pub get
+flutter run
+```
+
+### Run Tests
+
+```bash
+flutter test
+```
+
+### Build
+
 ```bash
 flutter build apk --release
 ```
 
-**iOS:**
+For iOS:
+
 ```bash
 flutter build ios --release
 ```
 
-## 📱 Usage
+## Notes
 
-1. **Onboarding**: New users will see an introduction screen
-2. **Authentication**: Register or login with email/password
-3. **Home Screen**: View available chat rooms or start new conversations
-4. **Chat Screen**: Send text messages and images in real-time
-5. **Profile**: Edit your profile information and avatar
-6. **Settings**: Toggle themes and manage app preferences
+- Android notification support is implemented with Firebase Messaging and a local notification channel.
+- Profile image uploads require Firebase Storage rules that allow authenticated users to upload their own files.
+- Firestore rules should protect user and chat data before using this app in production.
 
-## 🤝 Contributing
+## Author
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Flutter team for the amazing framework
-- Firebase for backend services
-- Open source community for inspiration and tools
-
----
-
-*Built with ❤️ using Flutter and Firebase*
+Built as a Flutter and Firebase learning project.

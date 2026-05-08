@@ -10,20 +10,6 @@ A real-time chat application built with Flutter and Firebase. The app supports e
 
 ## Features
 
-<<<<<<< Updated upstream
-### Login Screen
-<img src="screenshots/login_screen.jpg" alt="Login Screen" width="300">
-
-### Chat Interface
-<img src="screenshots/chat_interface.jpg" alt="Chat Interface" width="300">
-
-### Profile Page
-<img src="screenshots/profile_page.jpg" alt="Profile Page" width="300">
-
-### Settings
-<img src="screenshots/settings_page.jpg" alt="Settings" width="300">
-
-=======
 - Email and password registration/login with Firebase Authentication.
 - Automatic user profile creation in Cloud Firestore after sign up.
 - Real-time one-to-one chat using Firestore streams.
@@ -56,7 +42,6 @@ A real-time chat application built with Flutter and Firebase. The app supports e
 ## Concepts Learned
 
 This project brings together several important Flutter and Firebase concepts:
->>>>>>> Stashed changes
 
 ### Flutter App Structure
 

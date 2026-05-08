@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_chat_app/firebase_options.dart';
 import 'package:flutter_chat_app/pages/chat_screen_page.dart';
 
@@ -59,9 +58,6 @@ class ChatNotification {
 
   factory ChatNotification() => _instance;
 
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -81,27 +77,6 @@ class ChatNotification {
     _initialized = true;
 
     if (!_isAndroid) return;
-
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings settings = InitializationSettings(
-      android: androidSettings,
-    );
-
-    await notificationsPlugin.initialize(settings: settings);
-
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'messages',
-      'Messages',
-      importance: Importance.high,
-    );
-
-    await notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
 
     await _requestNotificationPermission();
 
@@ -136,12 +111,6 @@ class ChatNotification {
 
   Future<void> _requestNotificationPermission() async {
     await _messaging.requestPermission();
-
-    await notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
   }
 
   Future<void> _saveCurrentToken(String uid) async {

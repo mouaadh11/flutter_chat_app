@@ -19,7 +19,6 @@ A real-time chat application built with Flutter and Firebase. The app supports e
 - Profile editing with image uploads through Firebase Storage.
 - Profile gallery limited to 5 compressed images.
 - Push notification setup using Firebase Cloud Messaging.
-- Local Android notification channel using `flutter_local_notifications`.
 - Notification settings toggle that saves or removes the device token.
 - Notification tap handling that can open the related chat.
 - First-launch onboarding saved with Shared Preferences.
@@ -34,7 +33,6 @@ A real-time chat application built with Flutter and Firebase. The app supports e
 - Cloud Firestore
 - Firebase Storage
 - Firebase Cloud Messaging
-- Flutter Local Notifications
 - Provider
 - Image Picker
 - Shared Preferences
@@ -185,7 +183,7 @@ flutter build ios --release
 
 ## Notes
 
-- Android notification support is implemented with Firebase Messaging and a local notification channel.
+- Android notification support is implemented with Firebase Cloud Messaging for background delivery and notification tap navigation.
 - Profile image uploads require Firebase Storage rules that allow authenticated users to upload their own files.
 - Firestore rules should protect user and chat data before using this app in production.
 

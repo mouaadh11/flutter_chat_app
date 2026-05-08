@@ -28,7 +28,6 @@ A modern, real-time chat application built with Flutter and Firebase, featuring 
 ### Settings
 <img src="screenshots/settings_page.jpg" alt="Settings" width="300">
 
-*Note: Place your screenshots in a `screenshots/` folder in the root directory of the project.*
 
 ## 🛠️ Technologies Used
 
